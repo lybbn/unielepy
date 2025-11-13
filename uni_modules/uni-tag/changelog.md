@@ -1,3 +1,7 @@
+## 2.1.2（2025-08-19）
+- 修复 传入数字 0 不显示的问题
+## 2.1.1（2024-03-20）
+- 优化 app下边框过窄导致不显示的bug
 ## 2.1.0（2021-11-19）
 - 优化 组件UI，并提供设计资源，详见:[https://uniapp.dcloud.io/component/uniui/resource](https://uniapp.dcloud.io/component/uniui/resource)
 - 文档迁移，详见:[https://uniapp.dcloud.io/component/uniui/uni-tag](https://uniapp.dcloud.io/component/uniui/uni-tag)

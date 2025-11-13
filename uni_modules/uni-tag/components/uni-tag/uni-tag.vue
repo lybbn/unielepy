@@ -1,5 +1,5 @@
 <template>
-	<text class="uni-tag" v-if="text" :class="classes" :style="customStyle" @click="onClick">{{text}}</text>
+	<text class="uni-tag" v-if="showTag" :class="classes" :style="customStyle" @click="onClick">{{text}}</text>
 </template>
 
 <script>
@@ -69,6 +69,9 @@
 			}
 		},
 		computed: {
+			showTag() {
+				return !!this.text.toString()
+			},
 			classes() {
 				const {
 					type,
