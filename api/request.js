@@ -5,7 +5,7 @@ function gettoken(){
 	var token= 'nulltoken'//初始token
 	//普通用户token
 	const tempuserlogininfo = common.getData("nuserlogininfo")
-	if (tempuserlogininfo instanceof Object){
+	if (tempuserlogininfo && typeof tempuserlogininfo === 'object'){
 		token = tempuserlogininfo.access
 	}
 	return token
