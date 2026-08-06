@@ -1,23 +1,40 @@
 <script>
-	//app端初始化，打包app时需要升级客户端可启用
-	// import initApp from '@/api/init.js'
 	export default {
-		//全局变量
+		//全局变量（过渡期保留，富文本传递建议改用 store）
 		globalData:{
 			richcontent:"",//富文本临时传递存储
 			appVersion: "",//当前app版本号
 		},
 		onLaunch: function() {
 			console.log('unielepy已启动')
-			console.log('App Launch')
-			//app端初始化，打包app时需要升级客户端可启用
-			// initApp()
+			// 从 storage 恢复登录态到 store（含旧 key nuserlogininfo 无感迁移）
+			try {
+				this.$store.dispatch('user/restoreFromStorage')
+			} catch (e) {
+				console.error('restoreFromStorage error:', e)
+			}
+			// App 端初始化：版本检测/热更新/网络监听（按需启用）
+			// #ifdef APP-PLUS
+			try {
+				const initApp = require('@/api/init.js').default
+				initApp()
+			} catch (e) {
+				console.error('initApp error:', e)
+			}
+			// #endif
 		},
 		onShow: function() {
 			console.log('App Show')
 		},
 		onHide: function() {
 			console.log('App Hide')
+		},
+		// 全局错误兜底，避免白屏
+		onError(err) {
+			console.error('App onError:', err)
+		},
+		onUnhandledRejection(res) {
+			console.error('App unhandled rejection:', res)
 		}
 	}
 </script>

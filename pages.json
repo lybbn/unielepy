@@ -115,7 +115,7 @@
 	},
 	"tabBar":{//底部导航
 			"color":"#9B9B9B",
-			"selectedColor":"#121212",
+			"selectedColor":"#2979ff",
 			"borderStyle":"#D0DBD9",
 			"backgroundColor":"#FFFFFF",
 			"list":[

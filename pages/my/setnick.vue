@@ -2,7 +2,8 @@
 	<view>
 		<view class="lygap20-bg"></view>
 		<view class="info-container">
-			<u--input placeholder="请输入内容" v-model="nickname" border="none"></u--input>
+			<!-- 修复：u--input 是 Vue3 写法，Vue2 应使用 u-input -->
+			<u-input placeholder="请输入昵称" v-model="nickname" border="none"></u-input>
 		</view>
 		<button type="primary" class="btnSave" @click="setnickname">完成</button>
 	</view>
@@ -27,19 +28,19 @@
 					return
 				}
 				setNickname({nickname:this.nickname}).then(res=>{
-					// //网络请求请去掉以下注释
-					// if(res.code == 2000){
-					// 	getApp().globalData.userinfo.nickname = this.nickname
-					// 	this.$common.showToast("设置成功")
-					// 	//延迟重载该页面
-					// 	setTimeout(()=>{
-					// 		uni.navigateBack({
-					// 		    delta: 1
-					// 		}); //这个是返回上级第一个页面， delta等于2的时候跳过上个页面返回再上一个页面
-					// 	},2000)
-					// }else{
-					// 	this.$common.showToast(res.msg)
-					// }
+					if(res.code == 2000){
+						// 同步更新 store 中的昵称
+						const newInfo = { ...this.$store.getters['user/userInfo'], nickname: this.nickname }
+						this.$store.commit('user/SET_USER_INFO', newInfo)
+						this.$common.showToast("设置成功")
+						setTimeout(()=>{
+							uni.navigateBack({ delta: 1 })
+						},1000)
+					}else{
+						this.$common.showToast(res.msg || '设置失败')
+					}
+				}).catch(e => {
+					console.error('setnickname error:', e)
 				})
 			}
 		}

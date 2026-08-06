@@ -12,7 +12,7 @@
 				<span>功能展示</span>
 			</view>
 			<u-grid :border="false" col="4">
-				<u-grid-item v-for="(listItem,listIndex) in tabList" :key="listIndex" @click="tabclick">
+				<u-grid-item v-for="(listItem,listIndex) in tabList" :key="listIndex" @click="tabclick(listIndex)">
 					<u-icon
 						:customStyle="{paddingTop:20+'rpx'}"
 						:name="listItem.name"
@@ -94,19 +94,22 @@
 			uni.stopPullDownRefresh()
 		},
 		methods: {
-			tabclick(name) {
-				if(name == 0){
+			tabclick(index) {
+				// 修复：原 tabclick 未接收索引导致 6 个入口全部失效
+				if(index == 0){
 					this.$common.linkjump("/pages/login/login?showBack=true")
-				}else if(name == 1){
+				}else if(index == 1){
 					this.$common.linkjump("/pages/login/pwdreset/pwdreset")
-				}else if(name == 2){
+				}else if(index == 2){
 					this.$common.linkjump("/pages/invite/invite")
-				}else if(name == 3){
+				}else if(index == 3){
 					this.$common.linkjump("/pages/message/notice")
-				}else if(name == 5){
+				}else if(index == 4){
+					// 首页（当前页），无操作
+				}else if(index == 5){
 					this.$common.linkjump("/pages/my/index",true)
 				}
-				// this.$refs.lyToast.success(`点击了第${name}个`)
+				// this.$refs.lyToast.success(`点击了第${index}个`)
 			},
 			//轮播图获取数据
 			getLunBo() {

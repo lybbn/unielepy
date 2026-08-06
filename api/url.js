@@ -1,8 +1,7 @@
-let _url;
-if (process.env.NODE_ENV == "development") {
-    //本地开发
-    _url = 'http://django-vue-lyadmin.lybbn.cn/api/'; //测试地址/
-} else {
-    _url = 'http://django-vue-lyadmin.lybbn.cn/api/'; //线上地址
-}
-export const url = _url;
+/**
+ * url.js 兼容 re-export
+ * 降级为从 config/env 重新导出，保持 import { url } from '@/api/url' 可用
+ */
+import { baseUrl } from '@/config/env.js'
+export const url = baseUrl
+export default baseUrl

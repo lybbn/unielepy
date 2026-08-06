@@ -34,47 +34,57 @@
 
 <script>
 	import {xcxChooseUploadAvatar} from '@/api/api.js'
+	import {baseUrl} from '@/config/env.js'
 	export default {
 		data() {
 			return {
 				bgColor:'#F6F6F6',
-				userInfo:{
-					avatar:"/static/unielepystatic/img/lycenter/defaultAvatarUrlgrey.png",
-					nickname:"未登录",
-					mobile:"1xxxxxxxxx",
-				},
+			}
+		},
+		computed: {
+			// 从 store 读取用户信息，默认占位
+			userInfo() {
+				return this.$store.getters['user/userInfo'] || {
+					avatar: "/static/unielepystatic/img/lycenter/defaultAvatarUrlgrey.png",
+					nickname: "未登录",
+					mobile: "1xxxxxxxxx",
+				}
 			}
 		},
 		onShow() {
-			// //网络请求请去掉以下注释
-			// this.userInfo = getApp().globalData.userinfo
+			if (this.$store.getters['user/isLogin']) {
+				// 可在此刷新用户信息
+			}
 		},
 		methods:{
 			jumpto(urls){
 				this.$common.linkjump(urls)
 			},
 			async changeAvatar(){
-				var vm = this
-				// var params = ['album','camera']
 				var params = ['album','camera']
-				let obj= await xcxChooseUploadAvatar(params)
-				if(obj.code == 2000) {
-					let ress=''
-					if (obj.data.data[0].indexOf("://")>=0){
-						ress = obj.data.data[0]
-					}else{
-						ress = url.split('/api')[0]+obj.data.data[0]
+				try {
+					let obj = await xcxChooseUploadAvatar(params)
+					if(obj.code == 2000) {
+						let ress = ''
+						if (obj.data.data[0].indexOf("://") >= 0){
+							ress = obj.data.data[0]
+						}else{
+							// 修复：原 url 未定义，改为从 config/env 引入 baseUrl
+							ress = baseUrl.split('/api')[0] + obj.data.data[0]
+						}
+						// 更新 store 中的用户头像
+						const newInfo = { ...this.userInfo, avatar: ress }
+						this.$store.commit('user/SET_USER_INFO', newInfo)
+					} else {
+						// 修复：原 common 未定义，改为 this.$common
+						this.$common.showToast(obj.msg)
 					}
-					// console.log(ress)
-					this.userInfo.avatar = ress
-					 getApp().globalData.userinfo.avatar = ress
-				} else {
-					common.showToast(obj.msg)
+				} catch (e) {
+					console.error('changeAvatar error:', e)
 				}
 			},
 			logout(){
-				getApp().globalData.userinfo = ""
-				this.$common.clearUser()
+				this.$store.dispatch('user/logout')
 				this.$common.linkjump('/pages/index/index',true)
 			},
 		},

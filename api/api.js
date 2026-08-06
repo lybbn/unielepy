@@ -3,6 +3,12 @@ import {ajaxGet,ajaxPost,ajaxDelete,ajaxPut,ajaxPatch,chooseUploadImg,uploadImg}
 // app检测更新
 export const upgradeApp = params => ajaxPost({url: `app/checkversion/`,params})
 
+// 用户注册
+export const userRegister = params => ajaxPost({url: `xcx/register/`,params})
+
+// 获取当前用户信息
+export const getUserInfo = params => ajaxGet({url: `xcx/userinfo/`,params})
+
 // 用户微信手机号登录
 export const xcxMobilelogin = params => ajaxPost({url: `xcx/mobilelogin/`,params})
 

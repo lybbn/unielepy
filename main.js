@@ -1,35 +1,32 @@
-// unielepy-----django-vue-lyadmin----mainjs--
-import stopRepeatClick from './utils/stopRepeatClick.js';
-// #ifndef VUE3
+// unielepy-----django-vue-lyadmin----main.js
 import Vue from 'vue'
 import App from './App'
-import common from '@/api/common'
+import uView from '@/uni_modules/uview-ui'
+import store from '@/store/index.js'
+import util from '@/utils/index.js'
+import common from '@/api/common.js'
+import stopRepeatClick from './utils/stopRepeatClick.js'
 
-Vue.prototype.$stopRepeatClick = stopRepeatClick
 Vue.config.productionTip = false
+
+// uView 必须在 new Vue 之前 use，确保实例化时组件能力已挂载
+Vue.use(uView)
+
+// 全局挂载
+Vue.prototype.$store = store
+Vue.prototype.$util = util
+Vue.prototype.$common = common
+Vue.prototype.$stopRepeatClick = stopRepeatClick
+
+// 全局错误捕获
+Vue.config.errorHandler = (err, vm, info) => {
+  console.error('Vue error:', err, info)
+}
 
 App.mpType = 'app'
 
 const app = new Vue({
-    ...App
+  store,
+  ...App
 })
 app.$mount()
-
-//uview-ui
-import uView from '@/uni_modules/uview-ui';  
-Vue.use(uView);
-Vue.prototype.$common = common;
-
-// #endif
-
-// #ifdef VUE3
-import { createSSRApp } from 'vue'
-import App from './App.vue'
-export function createApp() {
-  const app = createSSRApp(App)
-  app.config.globalProperties.$stopRepeatClick = stopRepeatClick;
-  return {
-    app
-  }
-}
-// #endif

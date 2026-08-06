@@ -11,12 +11,18 @@ const is_check_app_upgrade = false //是否检查APP更新
 const is_silently = false //app的wgt更新是否静默安装
 const is_mandatory = false //app更新是否强制更新
 // #ifdef APP-PLUS
-import interceptorChooseImage from '@/components/json-interceptor-chooseImage/js_sdk/main.js';
+// 守卫：原引入的组件路径不存在，用 try/catch 动态加载避免 App 端构建/启动崩溃
+let interceptorChooseImage = null
+try {
+	interceptorChooseImage = require('@/components/json-interceptor-chooseImage/js_sdk/main.js').default
+} catch (e) {
+	console.warn('json-interceptor-chooseImage 组件缺失，已跳过相册权限拦截')
+}
 // #endif
 export default async function() {
 	//应用初始化
 	// #ifdef APP-PLUS
-	plus.screen.lockOrientation('portrait-primary'); //竖屏正方向锁定 
+	plus.screen.lockOrientation('portrait-primary'); //竖屏正方向锁定
 	if(is_check_app_upgrade){
 		//热更新
 		const updated = uni.getStorageSync(PACKAGE_UPDATE_KEY); // 尝试读取storage
@@ -61,7 +67,11 @@ export default async function() {
 	}
 
 	// 实现，路由拦截。当应用无访问摄像头/相册权限，引导跳到设置界面
-	interceptorChooseImage()
+	try {
+		if (interceptorChooseImage) interceptorChooseImage()
+	} catch (e) {
+		console.warn('interceptorChooseImage 调用失败：', e)
+	}
 
 	// 监听并提示设备网络状态变化
 	uni.onNetworkStatusChange(res => {
@@ -99,31 +109,15 @@ function initAppVersion() {
 			version:currentVersion,
 			platform:platform,
 		}
-		// 检查服务器端版本号
+		// 检查服务器端版本号（修复：原真实 res 被 mock 数据覆盖，版本检测形同虚设）
 		upgradeApp().then(res => {
-			res = {
-				data:{
-					version:'2.0.0',
-					androidWgtUrl:"http://www.lybbn.cn",
-					iosWgtUrl:"http://www.lybbn.cn",
-					wgtUrl:"http://www.lybbn.cn",
-				}
-			}
-			checkVersionToUgrade(res.data.version,currentVersion,res.data)
-			// console.log('检查是否有可以更新的版本', res);
-			if (res.code == 2000) {
-				// 判断是否更新
-				// res = {
-				// 	data:{
-				// 		version:'2.0.0',
-				// 		androidWgtUrl:"http://www.lybbn.cn",
-				// 		iosWgtUrl:"http://www.lybbn.cn",
-				// 	}
-				// }
-				// checkVersionToUgrade(res.data.version,currentVersion,res.data)
-			}else{
+			if (res.code == 2000 && res.data) {
+				checkVersionToUgrade(res.data.version, currentVersion, res.data)
+			} else {
 				console.log("获取app版本信息失败")
 			}
+		}).catch(e => {
+			console.error('upgradeApp error:', e)
 		})
 	});
 	// 检查更新

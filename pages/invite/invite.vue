@@ -20,6 +20,7 @@
 	</view>
 </template>
 <script>
+	import { isWeixinBrowser, isH5Ios, isIos as appIos } from '@/utils/platform.js'
 	export default {
 		data() {
 			return {
@@ -31,7 +32,8 @@
 					version:"1.0.0",
 				},
 				code: "",
-				isIos: "",
+				isIos: false,
+				isWeixin: false,
 				showMask: false,
 				downloadUrl: {
 					"ios": "",
@@ -41,41 +43,57 @@
 		},
 		created() {
 			this.year = (new Date).getFullYear()
-			//判断是否在微信中打开
-			var userAgent = navigator.userAgent;
-			var ua = userAgent.toLowerCase();
-			this.isWeixin = ua.indexOf('micromessenger') != -1;
-			//判断是否在ios或者安卓打开
-			this.isIos = !!userAgent.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/);
+			// 跨端安全判断：H5 用 userAgent，App/小程序用系统信息
+			this.isWeixin = isWeixinBrowser()
+			// #ifdef H5
+			this.isIos = isH5Ios()
+			// #endif
+			// #ifndef H5
+			this.isIos = appIos
+			// #endif
 		},
 		onLoad({code}) {
 			this.code = code
 		},
 		methods: {
 			download() {
+				// 复制邀请码
 				if (this.code) {
 					uni.setClipboardData({
 						data: this.code,
-						complete: (e) => {
-							console.log(e);
-							uni.hideToast()
-							/* 以下临时解决setClipboardData h5端样式和键盘弹出端错误解决方案，后续会直接内置*/
-							document.getElementById("#clipboard").style.top = '-999px';
-							uni.hideKeyboard()
+						success: () => {
+							this.$common.showToast('邀请码已复制')
 						}
 					})
 				}
 
+				// H5 端：浏览器下载/微信引导
+				// #ifdef H5
 				if (this.isIos) {
 					window.location.href = this.downloadUrl.ios
 				} else {
 					if (this.isWeixin) {
-						//显示浮层
 						this.showMask = true
 					} else {
 						window.location.href = this.downloadUrl.android
 					}
 				}
+				// #endif
+
+				// App 端：用 plus.runtime.openURL 打开下载地址
+				// #ifdef APP-PLUS
+				const url = this.isIos ? this.downloadUrl.ios : this.downloadUrl.android
+				if (url) {
+					plus.runtime.openURL(url)
+				} else {
+					this.$common.showToast('暂无下载地址')
+				}
+				// #endif
+
+				// 小程序端：不支持直接下载，引导浏览器打开
+				// #ifdef MP-WEIXIN
+				this.$common.showToast('请复制链接到浏览器打开下载')
+				// #endif
 			},
 		}
 	}

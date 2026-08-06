@@ -1,0 +1,13 @@
+{
+  "name": "unielepy",
+  "version": "1.0.1",
+  "description": "unielepy - UniApp 跨端移动应用框架（Vue2 + uview-ui）",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"no test specified\" && exit 0"
+  },
+  "dependencies": {
+    "vuex": "^3.6.2"
+  },
+  "author": "lybbn"
+}

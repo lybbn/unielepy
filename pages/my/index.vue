@@ -61,18 +61,27 @@
 </template>
 
 <script>
+	import {getUserInfo} from '@/api/api.js'
 	export default {
 		data() {
 			return {
 				title: 'Hello',
-				userinfo:{
-					avatar:"",
-					nickname:"昵称"
-				},
+			}
+		},
+		computed: {
+			// 从 store 读取用户信息，默认占位
+			userinfo() {
+				return this.$store.getters['user/userInfo'] || { avatar: '', nickname: '未登录' }
 			}
 		},
 		onLoad() {
 
+		},
+		onShow() {
+			// 已登录时刷新用户信息
+			if (this.$store.getters['user/isLogin']) {
+				this.getData()
+			}
 		},
 		methods: {
 			// 统一跳转路由
@@ -80,20 +89,29 @@
 				uni.navigateTo({ url });
 			},
 			logout(){
-				uni.showToast({ title: '点击了退出登录按钮' });
-				getApp().globalData.userinfo = ""
-				this.$common.clearUser()
-				this.$common.linkjump('/pages/index/index',true)
+				uni.showModal({
+					title: '提示',
+					content: '确定退出登录吗？',
+					success: res => {
+						if (res.confirm) {
+							this.$store.dispatch('user/logout')
+							this.$common.showToast('已退出登录')
+							setTimeout(() => {
+								this.$common.linkjump('/pages/index/index', true)
+							}, 800)
+						}
+					}
+				})
 			},
-			getData() {
-				// //网络请求请去掉以下注释
-				// getUserInfo().then(res=>{
-				// 	if(res.code == 2000) {
-				// 		let data = res.data.data
-				// 		this.userinfo = data
-				// 		getApp().globalData.userinfo = data
-				// 	}
-				// })
+			async getData() {
+				try {
+					const res = await getUserInfo()
+					if (res.code == 2000) {
+						this.$store.commit('user/SET_USER_INFO', res.data || (res.data && res.data.data))
+					}
+				} catch (e) {
+					console.error('getUserInfo error:', e)
+				}
 			},
 		}
 	}

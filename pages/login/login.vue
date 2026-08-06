@@ -55,11 +55,10 @@
 									/>
 								</view>
 								<lysendsmscode ref="shortCode" :phone="registerParams.mobile" codeType="login"></lysendsmscode>
-								</button>
+								</view>
 							</view>
 						</view>
-					</view>
-					<view class="login-type-tips">
+						<view class="login-type-tips">
 						<view @tap="showLoginBySmsCode" class="forget-section">
 							{{ loginByPass ? '验证码登录' : '密码登录' }}
 						</view>
@@ -147,6 +146,7 @@
 </template>
 <script>
 	import lysendsmscode from '@/components/ly-send-sms-code/ly-send-sms-code.vue'
+	import {xcxMobilelogin,userRegister,getUserInfo} from '@/api/api.js'
 	export default {
 		components:{
 			lysendsmscode,
@@ -209,9 +209,56 @@
 			navTo(url) {
 				uni.navigateTo({ url });
 			},
-			// 提交表单
+			// 提交登录
 			async toLogin() {
-				uni.showToast({ title: '点击了登录按钮' });
+				const { mobile, password, code } = this.loginParams
+				if (!mobile) {
+					this.$common.showToast('请输入手机号码')
+					return
+				}
+				if (this.loginByPass && !password) {
+					this.$common.showToast('请输入密码')
+					return
+				}
+				if (!this.loginByPass && !code) {
+					this.$common.showToast('请输入验证码')
+					return
+				}
+				this.btnLoading = true
+				const params = this.loginByPass
+					? { mobile, password }
+					: { mobile, code }
+				try {
+					const res = await xcxMobilelogin(params)
+					if (res.code == 2000) {
+						// 写入 store（token + userInfo），持久化由 store 处理
+						this.$store.dispatch('user/login', res.data || res)
+						this.$common.showToast('登录成功')
+						// 拉取完整用户信息
+						this.fetchUserInfo()
+						setTimeout(() => {
+							this.$common.linkjump('/pages/index/index', true)
+						}, 1000)
+					} else {
+						this.$common.showToast(res.msg || '登录失败')
+					}
+				} catch (e) {
+					// 4001 等错误走 catch（request.js 已统一处理 4001 提示）
+					console.error('login error:', e)
+				} finally {
+					this.btnLoading = false
+				}
+			},
+			// 拉取并写入用户信息
+			async fetchUserInfo() {
+				try {
+					const res = await getUserInfo()
+					if (res.code == 2000) {
+						this.$store.commit('user/SET_USER_INFO', res.data || res.data?.data)
+					}
+				} catch (e) {
+					console.error('getUserInfo error:', e)
+				}
 			},
 			// 切换登录/注册
 			tabClick(index) {
@@ -219,7 +266,40 @@
 			},
 			// 注册账号
 			async toRegister() {
-				uni.showToast({ title: '点击了注册按钮' });
+				const { mobile, password, password_repetition, code } = this.registerParams
+				if (!mobile) {
+					this.$common.showToast('请输入手机号码')
+					return
+				}
+				if (!code) {
+					this.$common.showToast('请输入验证码')
+					return
+				}
+				if (!password) {
+					this.$common.showToast('请输入密码')
+					return
+				}
+				if (password !== password_repetition) {
+					this.$common.showToast('两次密码不一致')
+					return
+				}
+				this.btnLoading = true
+				try {
+					const res = await userRegister({ mobile, password, code })
+					if (res.code == 2000) {
+						this.$common.showToast('注册成功')
+						setTimeout(() => {
+							// 切回登录 tab
+							this.tabCurrentIndex = 0
+						}, 1000)
+					} else {
+						this.$common.showToast(res.msg || '注册失败')
+					}
+				} catch (e) {
+					console.error('register error:', e)
+				} finally {
+					this.btnLoading = false
+				}
 			}
 		}
 	};
